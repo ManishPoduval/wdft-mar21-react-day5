@@ -26,7 +26,7 @@ function App(props) {
   //-------THE MAGIC HAPPENS HERE -------------------
   //--------------------------------------------------
   // The block of code below will run when the `todos` state gets updated
-  //  It will run syncronously after the state todo gets updates
+  //  It will run synchronously after the state todo gets updated
   // the second parameter in the useEffect , [todos] actually tells the useEffect to run automatically only whent the todos gets updated
   
   useEffect(() => {
