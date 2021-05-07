@@ -1,5 +1,5 @@
 import axios from 'axios';
-import React, { Component } from  'react'
+import React, { useState, useEffect } from  'react'
 import { Switch, Route, withRouter } from  "react-router-dom";
 import AddForm from './components/AddForm';
 import EditForm from './components/EditForm';
@@ -7,22 +7,38 @@ import MyNav from './components/MyNav';
 import TodoDetail from './components/TodoDetail';
 import TodoList from './components/TodoList';
 
-class App extends Component {
+
+
+function App(props) {
 
   //Save all your todos here which we show initially to the user
-  state = {
-    todos: []
-  }
+  const [todos, updateTodos] = useState([])
 
-  componentDidMount = () => {
-    // This code runs just once in the entire lifecycle on this Component
-    axios.get('http://localhost:5005/api/todos')
+  useEffect(() => {
+     // This code runs just once in the entire lifecycle on this Component
+     axios.get('http://localhost:5005/api/todos')
       .then((response) => {
-            this.setState({ todos: response.data })
+        updateTodos(response.data)
       })
-  }
+  }, [])
 
-  handleAdd = (event) => {
+  //-------------------------------------------------
+  //-------THE MAGIC HAPPENS HERE -------------------
+  //--------------------------------------------------
+  // The block of code below will run when the `todos` state gets updated
+  //  It will run syncronously after the state todo gets updates
+  // the second parameter in the useEffect , [todos] actually tells the useEffect to run automatically only whent the todos gets updated
+  
+  useEffect(() => {
+    // Redirect the user here
+    props.history.push('/')
+  }, [todos])
+  //--------------------------------------------------
+  //--------------------------------------------------
+  //--------------------------------------------------
+
+
+  const handleAdd = (event) => {
     // this will update the DB
     // and the state here as well
     event.preventDefault()
@@ -36,15 +52,10 @@ class App extends Component {
     // second is an object with key value pairs to send as form-data
     axios.post('http://localhost:5005/api/create', newTodo)
       .then((response) => {
+
           // if the todo is successfully added. 
           // add it to the state as well
-
-          this.setState({
-            todos: [response.data , ...this.state.todos]
-          }, () => {
-              // Redirect the user here
-              this.props.history.push('/')
-          })
+          updateTodos([response.data , ...todos])
       })
       .catch(() => {
         console.log('Add todo failed')
@@ -52,67 +63,45 @@ class App extends Component {
 
   }
 
-  handleDelete = (todoDetail) => {
+  const handleDelete = (todoDetail) => {
     //delete from the DB
     // delete from the state
 
     axios.delete(`http://localhost:5005/api/todos/${todoDetail._id}`)
       .then(() => {
           // filter all the todos and grab everyone except the one that is deleted
-          let filterTodos = this.state.todos.filter((todo) => {
+          let filterTodos = todos.filter((todo) => {
               return todo._id !== todoDetail._id
           })
-
           // Update the state so that the list in the UI updates as well
-          this.setState({
-            todos: filterTodos
-          }, () => {
-            // Redirecting to the home page after deleting
-            this.props.history.push('/')
-          })
+          updateTodos(filterTodos)
       })
       .catch(() => {
           console.log('Delete failed')
       })
-
-
-
   }
 
-  handleEdit = (todoDetail) => {
+  const handleEdit = (todoDetail) => {
     // edit the todo in the DB
     // and then in the state as well
     axios.patch(`http://localhost:5005/api/todos/${todoDetail._id}`, todoDetail)
       .then(() => {
         // update the localstate as well after updating in the DB
-          let updatedTodos = this.state.todos.map((todo) => {
+          let updatedTodos = todos.map((todo) => {
               if  (todo._id == todoDetail._id) {
                 todo.name = todoDetail.name
                 todo.description = todoDetail.description
               }
               return todo
           })
-
-        this.setState({
-          todos: updatedTodos
-        }, () => {
-          // Redirect to an specific page
-          // we redirect here to the '/' page
-          this.props.history.push('/')
-        })
+          updateTodos(updatedTodos)
       })
       .catch(() =>{
         console.log('Edit crashed')
       })
-
-
   }
 
-	render() {
-    // desrcuture state here
-    const { todos } = this.state
-    console.log(this.props)
-		return (
+  return (
 		<div  >
 			<h1>Shopping List</h1>
       <MyNav />
@@ -122,18 +111,18 @@ class App extends Component {
         }}/>
         <Route exact path="/todo/:todoId"  render={(routeProps) => {
             return <TodoDetail 
-            onDelete={this.handleDelete} {...routeProps} />
+            onDelete={handleDelete} {...routeProps} />
         }}/>
         <Route path="/todo/:todoId/edit"  render={(routeProps) => {
-            return <EditForm onEdit={this.handleEdit} {...routeProps} />
+            return <EditForm onEdit={handleEdit} {...routeProps} />
         }}/>
         <Route  path="/add-form"  render={() => {
-            return <AddForm onAdd={this.handleAdd} />
+            return <AddForm onAdd={handleAdd} />
         }}/>
       </Switch>
 		</div>
-		);
-	}
+	);
 }
+
 
 export default withRouter(App);

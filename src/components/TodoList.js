@@ -1,9 +1,8 @@
-import React, { Component } from 'react'
+import React from 'react'
 import { Link } from 'react-router-dom'
 
-class TodoList extends Component {
-    render() {
-        const { todos } = this.props
+function TodoList(props) {
+    const { todos } = props
         return (
             <div>
                 <h3>Todo List</h3>
@@ -16,7 +15,6 @@ class TodoList extends Component {
                 }
             </div>
         )
-    }
 }
 
 export default TodoList

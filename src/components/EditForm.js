@@ -1,65 +1,53 @@
-import React, { Component } from 'react'
+import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 
-class EditForm extends Component {
 
-    state = {
-        todoDetail: {}
-    }
+function EditForm(props) {
 
-    componentDidMount(){
-        let todoId = this.props.match.params.todoId
+    const [todoDetail, updateTodo] = useState({})
+
+    useEffect(() => {
+        let todoId = props.match.params.todoId
         axios.get(`http://localhost:5005/api/todos/${todoId}`)
             .then((response) => {
-                    this.setState({ todoDetail: response.data })
+                updateTodo(response.data)
             })
-    }
+    }, [])
 
-    handleNameChange = (event) => {
+    const handleNameChange = (event) => {
         // update just the name in the todoDetail state here
         let newName = event.target.value
 
         // when you want to just a single property of the object and not the whole object
         // clone IT
-        const { todoDetail } = this.state
         let cloneTodoDetail = JSON.parse(JSON.stringify(todoDetail))
 
         cloneTodoDetail.name = newName
-
-        this.setState({
-            todoDetail: cloneTodoDetail
-        })
+        updateTodo(cloneTodoDetail)
 
     }
 
     // ---------- SOMETHING COOL HAPPENED HERE ----------
     //------☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻☻
 
-    handleDescChange = (event) => {
+    const handleDescChange = (event) => {
         let newDesc = event.target.value
-        const { todoDetail } = this.state
-        let cloneTodoDetail = JSON.parse(JSON.stringify(todoDetail))
 
+        let cloneTodoDetail = JSON.parse(JSON.stringify(todoDetail))
         cloneTodoDetail.description = newDesc
 
-        this.setState({
-            todoDetail: cloneTodoDetail
-        })
-
+        updateTodo(cloneTodoDetail)
     }
 
-    render() {
-        const { todoDetail } = this.state
-        const { onEdit } = this.props
-        return (
-            <div>
-                <h3>Edit page</h3>
-                <input onChange={this.handleNameChange} type="text" value={todoDetail.name} />
-                <input onChange={this.handleDescChange} type="text" value={todoDetail.description}/>
-                <button onClick={() => { onEdit(todoDetail)  }}>Submit</button>
-            </div>
-        )
-    }
+    const { onEdit } = props
+    return (
+        <div>
+            <h3>Edit page</h3>
+            <input onChange={handleNameChange} type="text" value={todoDetail.name} />
+            <input onChange={handleDescChange} type="text" value={todoDetail.description}/>
+            <button onClick={() => { onEdit(todoDetail)  }}>Submit</button>
+        </div>
+    )
 }
 
 export default EditForm
